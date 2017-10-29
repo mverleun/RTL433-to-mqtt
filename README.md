@@ -15,27 +15,14 @@ Before you get started you'll have to install some packages.
 
 First install software using the command:
 
-apt-get update && apt-get install -y \
-        rtl-sdr \
-        librtlsdr-dev \
-        librtlsdr0 \
-        git \
-        automake \
-        libtool \
-        cmake
+apt-get update && apt-get install -y rtl-sdr librtlsdr-dev librtlsdr0 git automake libtool cmake
 
 This will install all the software you need to build the latest version of the rtl_433 receiver
 software.
 
 Next download and build the receiver software:
 
-git clone https://github.com/merbanan/rtl_433.git \
-        && cd rtl_433/ \
-        && mkdir build \
-        && cd build \
-        && cmake ../ \
-        && make \
-        && make install
+git clone https://github.com/merbanan/rtl_433.git && cd rtl_433/ && mkdir build && cd build && cmake ../ && make && make install
 
 The last step is to install the python MQTT library:
 
