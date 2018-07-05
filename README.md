@@ -63,6 +63,17 @@ sensors/rtl_433/AlectoV1 Rain Sensor/mic CHECKSUM
 
 Note that spaces can be used in topic names!
 
+This could be used to subscribe to selected topics, e.g. if you want to know the battery status of all the sensors you could subscribe to the topic `sensors/rtl_433/+/battery`.
+
+This would look similar to this"
+
+```bash
+mosquitto_sub -h mqtt.example.com -p 1883 -v -t "sensors/rtl_433/+/battery"
+sensors/rtl_433/AlectoV1 Rain Sensor/battery OK
+sensors/rtl_433/AlectoV1 Wind Sensor/battery OK
+sensors/rtl_433/AlectoV1 Rain Sensor/battery OK
+```
+
 
 ## Installation
 Before you get started you'll have to install some packages.
