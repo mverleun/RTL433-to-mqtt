@@ -1,0 +1,9 @@
+# Config section
+# Uncomment these lines if your MQTT server requires authentication
+#MQTT_USER="mqtt-user"
+#MQTT_PASS="mqtt-password"
+MQTT_HOST="mqtt.example.com"
+MQTT_PORT=1883
+MQTT_TOPIC="sensors/rtl_433"
+MQTT_QOS=0
+# End config section
