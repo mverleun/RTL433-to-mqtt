@@ -56,7 +56,11 @@ rtl433_proc = subprocess.Popen(rtl_433_cmd.split(),stdout=subprocess.PIPE,stderr
 
 
 while True:
+    if rtl433_proc.poll() is not None:
+        sys.exit(rtl433_proc.poll())
     for line in iter(rtl433_proc.stdout.readline, '\n'):
+        if rtl433_proc.poll() is not None:
+            sys.exit(rtl433_proc.poll())
         if "time" in line:
             mqttc.publish(MQTT_TOPIC, payload=line,qos=MQTT_QOS)
             json_dict = json.loads(line)
