@@ -14,7 +14,15 @@ rtl_433_cmd = "/usr/local/bin/rtl_433 -G -F json" # linux
 
 # Define MQTT event callbacks
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
+    connect_statuses = {
+        0: "Connected",
+        1: "incorrect protocol version",
+        2: "invalid client ID",
+        3: "server unavailable",
+        4: "bad username or password",
+        5: "not authorised"
+    }
+    print(connect_statuses.get(rc, "Unknown error"))
 
 def on_disconnect(client, userdata, rc):
     if rc != 0:
