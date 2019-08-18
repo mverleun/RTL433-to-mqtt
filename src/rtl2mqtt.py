@@ -10,7 +10,7 @@ import json
 
 from config import *
 
-rtl_433_cmd = "/usr/local/bin/rtl_433 -G -F json" # linux
+rtl_433_cmd = "/usr/local/bin/rtl_433 -F json"
 
 # Define MQTT event callbacks
 def on_connect(client, userdata, flags, rc):
@@ -22,7 +22,7 @@ def on_connect(client, userdata, flags, rc):
         4: "bad username or password",
         5: "not authorised"
     }
-    print(connect_statuses.get(rc, "Unknown error"))
+    print("MQTT: " + connect_statuses.get(rc, "Unknown error"))
 
 def on_disconnect(client, userdata, rc):
     if rc != 0:
@@ -41,34 +41,40 @@ def on_log(client, obj, level, string):
     print(string)
 
 # Setup MQTT connection
-
 mqttc = mqtt.Client()
-# Assign event callbacks
-#mqttc.on_message = on_message
+
 mqttc.on_connect = on_connect
-#mqttc.on_publish = on_publish
 mqttc.on_subscribe = on_subscribe
 mqttc.on_disconnect = on_disconnect
 
-# Uncomment to enable debug messages
-#mqttc.on_log = on_log
+if DEBUG:
+    mqttc.on_log = on_log
+    mqttc.on_message = on_message
+    mqttc.on_publish = on_publish
 
-# Uncomment the next line if your MQTT server requires authentication
-#mqttc.username_pw_set(MQTT_USER, password=MQTT_PASS)
+if MQTT_PASS:
+    print("Connecting with authentication")
+    mqttc.username_pw_set(MQTT_USER, password=MQTT_PASS)
+else:
+    print("Connecting without authentication")
+
 mqttc.connect(MQTT_HOST, MQTT_PORT, 60)
-
 mqttc.loop_start()
 
 # Start RTL433 listener
+print("Starting RTL433")
 rtl433_proc = subprocess.Popen(rtl_433_cmd.split(),stdout=subprocess.PIPE,stderr=subprocess.STDOUT,universal_newlines=True)
-
 
 while True:
     if rtl433_proc.poll() is not None:
+        print("RTL433 exited with code " + str(rtl433_proc.poll()))
         sys.exit(rtl433_proc.poll())
+
     for line in iter(rtl433_proc.stdout.readline, '\n'):
         if rtl433_proc.poll() is not None:
+            print("RTL433 exited with code " + str(rtl433_proc.poll()))
             sys.exit(rtl433_proc.poll())
+
         if "time" in line:
             mqttc.publish(MQTT_TOPIC, payload=line,qos=MQTT_QOS)
             json_dict = json.loads(line)
