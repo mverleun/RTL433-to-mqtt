@@ -7,10 +7,13 @@ import time
 import paho.mqtt.client as mqtt
 import os
 import json
+import re
 
 from config import *
 
 rtl_433_cmd = "/usr/local/bin/rtl_433 -F json"
+
+important_rtl_output_re = re.compile("^(Found|Tuned)")
 
 # Define MQTT event callbacks
 def on_connect(client, userdata, flags, rc):
@@ -26,13 +29,15 @@ def on_connect(client, userdata, flags, rc):
 
 def on_disconnect(client, userdata, rc):
     if rc != 0:
-        print("Unexpected disconnection.")
+        print("Unexpected disconnection")
+    else:
+        print("Disconnected")
 
 def on_message(client, obj, msg):
     print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
 def on_publish(client, obj, mid):
-    print("mid: " + str(mid))
+    print("Pub: " + str(mid))
 
 def on_subscribe(client, obj, mid, granted_qos):
     print("Subscribed: " + str(mid) + " " + str(granted_qos))
@@ -48,6 +53,7 @@ mqttc.on_subscribe = on_subscribe
 mqttc.on_disconnect = on_disconnect
 
 if DEBUG:
+    print("Debugging messages enabled")
     mqttc.on_log = on_log
     mqttc.on_message = on_message
     mqttc.on_publish = on_publish
@@ -63,7 +69,7 @@ mqttc.loop_start()
 
 # Start RTL433 listener
 print("Starting RTL433")
-rtl433_proc = subprocess.Popen(rtl_433_cmd.split(),stdout=subprocess.PIPE,stderr=subprocess.STDOUT,universal_newlines=True)
+rtl433_proc = subprocess.Popen(rtl_433_cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
 
 while True:
     if rtl433_proc.poll() is not None:
@@ -71,19 +77,26 @@ while True:
         sys.exit(rtl433_proc.poll())
 
     for line in iter(rtl433_proc.stdout.readline, '\n'):
+        if DEBUG:
+            print("RTL: " + line)
+        elif important_rtl_output_re.match(line):
+            print(line)
+
         if rtl433_proc.poll() is not None:
             print("RTL433 exited with code " + str(rtl433_proc.poll()))
             sys.exit(rtl433_proc.poll())
 
         if "time" in line:
-            mqttc.publish(MQTT_TOPIC, payload=line,qos=MQTT_QOS)
+            mqttc.publish(MQTT_TOPIC, payload=line, qos=MQTT_QOS, retain=True)
             json_dict = json.loads(line)
             for item in json_dict:
                 value = json_dict[item]
                 if "model" in item:
-                    subtopic=value
+                    subtopic = value
+                if "id" in item:
+                    subtopic += "/" + str(value)
 
             for item in json_dict:
                 value = json_dict[item]
                 if not "model" in item:
-                    mqttc.publish(MQTT_TOPIC+"/"+subtopic+"/"+item, payload=value,qos=MQTT_QOS)
+                    mqttc.publish(MQTT_TOPIC+"/"+subtopic+"/"+item, payload=value, qos=MQTT_QOS, retain=True)
