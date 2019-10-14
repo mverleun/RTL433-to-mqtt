@@ -91,9 +91,9 @@ while True:
             json_dict = json.loads(line)
             for item in json_dict:
                 value = json_dict[item]
-                if "model" in item:
+                if item == "model":
                     subtopic = value
-                if "id" in item:
+                if item == "id":
                     subtopic += "/" + str(value)
 
             for item in json_dict:
