@@ -55,3 +55,4 @@ RUN chmod +x /scripts/rtl2mqtt.py
 #
 
 ENTRYPOINT ["/scripts/rtl2mqtt.py"]
+
