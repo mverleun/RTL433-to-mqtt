@@ -98,5 +98,5 @@ while True:
 
             for item in json_dict:
                 value = json_dict[item]
-                if not "model" in item:
+                if (not "model" in item) and (type(value) is not list):
                     mqttc.publish(MQTT_TOPIC+"/"+subtopic+"/"+item, payload=value, qos=MQTT_QOS, retain=True)
